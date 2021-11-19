@@ -1,4 +1,10 @@
+import 'dart:async';
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+// import 'package:flutter_highlight/flutter_highlight.dart';
+// import 'package:flutter_highlight/themes/github.dart';
 import 'package:super_editor/super_editor.dart';
 
 import '_example_document.dart';
@@ -27,10 +33,17 @@ class _ExampleEditorState extends State<ExampleEditor> {
   OverlayEntry? _formatBarOverlayEntry;
   final _selectionAnchor = ValueNotifier<Offset?>(null);
 
+  late Timer _timer;
+
+  late MutableDocument _fromJsonDocument;
+
   @override
   void initState() {
     super.initState();
-    _doc = createInitialDocument()..addListener(_hideOrShowToolbar);
+    _doc = createInitialDocument()
+      ..addListener(_hideOrShowToolbar)
+      ..addListener(_updateMarkdownAndRebuild);
+    _fromJsonDocument = MutableDocument.fromJson(_doc.toJson());
     _docEditor = DocumentEditor(document: _doc as MutableDocument);
     _composer = DocumentComposer()..addListener(_hideOrShowToolbar);
     _editorFocusNode = FocusNode();
@@ -39,6 +52,7 @@ class _ExampleEditorState extends State<ExampleEditor> {
 
   @override
   void dispose() {
+    _timer.cancel();
     if (_formatBarOverlayEntry != null) {
       _formatBarOverlayEntry!.remove();
     }
@@ -47,6 +61,16 @@ class _ExampleEditorState extends State<ExampleEditor> {
     _editorFocusNode!.dispose();
     _composer!.dispose();
     super.dispose();
+  }
+
+  void _updateMarkdownAndRebuild() {
+    setState(() {
+      _updateMarkdown();
+    });
+  }
+
+  void _updateMarkdown() {
+    _fromJsonDocument = MutableDocument.fromJson(_doc.toJson());
   }
 
   void _hideOrShowToolbar() {
@@ -150,14 +174,62 @@ class _ExampleEditorState extends State<ExampleEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return SuperEditor(
-      editor: _docEditor!,
-      composer: _composer,
-      focusNode: _editorFocusNode,
-      scrollController: _scrollController,
-      documentLayoutKey: _docLayoutKey,
-      maxWidth: 600, // arbitrary choice for maximum width
-      padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 24),
+    var source = '''main() {
+  print("Hello, World!");
+}
+''';
+
+    return Row(
+      children: [
+        // Expanded(
+        //   child: Stack(
+        //     children: [
+        //       HighlightView(
+        //         source,
+        //         language: 'dart',
+        //         theme: githubTheme,
+        //         padding: const EdgeInsets.all(12),
+        //         textStyle: const TextStyle(
+        //           // fontFamily: 'My awesome monospace font',
+        //           fontSize: 16,
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        Expanded(
+          child: Container(
+            color: Colors.white,
+            child: SuperEditor(
+              componentBuilders: const <ComponentBuilder>[
+                paragraphBuilder,
+                unorderedListItemBuilder,
+                orderedListItemBuilder,
+                blockquoteBuilder,
+                imageBuilder,
+                // codeBuilder,
+                embeddedImageBuilder,
+                horizontalRuleBuilder,
+                unknownComponentBuilder,
+              ],
+              editor: _docEditor!,
+              composer: _composer,
+              focusNode: _editorFocusNode,
+              scrollController: _scrollController,
+              documentLayoutKey: _docLayoutKey,
+              maxWidth: 600, // arbitrary choice for maximum width
+              padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 24),
+            ),
+          ),
+        ),
+        Expanded(
+          child: SuperEditor(
+            editor: DocumentEditor(document: _fromJsonDocument),
+            maxWidth: 600,
+            padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 24),
+          ),
+        )
+      ],
     );
   }
 }

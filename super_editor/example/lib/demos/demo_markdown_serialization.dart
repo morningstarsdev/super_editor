@@ -20,6 +20,7 @@ class _MarkdownSerializationDemoState extends State<MarkdownSerializationDemo> {
   late DocumentEditor _docEditor;
 
   String _markdown = '';
+  Document? _document;
 
   Timer? _updateTimer;
   final _markdownUpdateWaitTime = const Duration(milliseconds: 250);
@@ -52,6 +53,10 @@ class _MarkdownSerializationDemoState extends State<MarkdownSerializationDemo> {
 
   void _updateMarkdown() {
     _markdown = serializeDocumentToMarkdown(_doc);
+    // _document = deserializeMarkdownToDocument(_markdown);
+    final json = _doc.toJson();
+    print(json);
+    _document = MutableDocument.fromJson(json);
   }
 
   @override
@@ -61,7 +66,7 @@ class _MarkdownSerializationDemoState extends State<MarkdownSerializationDemo> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: SuperEditor(
+            child: SuperEditor.standard(
               key: _docKey,
               editor: _docEditor,
               maxWidth: 600,
@@ -87,6 +92,17 @@ class _MarkdownSerializationDemoState extends State<MarkdownSerializationDemo> {
             ),
           ),
         ),
+        if (_document != null)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: SuperEditor(
+                editor: DocumentEditor(document: _document as MutableDocument),
+                maxWidth: 600,
+                padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 24),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -95,20 +111,26 @@ class _MarkdownSerializationDemoState extends State<MarkdownSerializationDemo> {
 Document _createInitialDocument() {
   return MutableDocument(
     nodes: [
-      ImageNode(
+      // ImageNode(
+      //   id: DocumentEditor.createNodeId(),
+      //   imageUrl: 'https://i.imgur.com/fSZwM7G.jpg',
+      // ),
+      // ParagraphNode(
+      //   id: DocumentEditor.createNodeId(),
+      //   text: AttributedText(
+      //     text: 'Example Document',
+      //   ),
+      //   metadata: {
+      //     'blockType': header1Attribution,
+      //   },
+      // ),
+      // HorizontalRuleNode(id: DocumentEditor.createNodeId()),
+      EmbeddedImageNode(
         id: DocumentEditor.createNodeId(),
+        title: 'Memory link',
+        counter: 5,
         imageUrl: 'https://i.imgur.com/fSZwM7G.jpg',
       ),
-      ParagraphNode(
-        id: DocumentEditor.createNodeId(),
-        text: AttributedText(
-          text: 'Example Document',
-        ),
-        metadata: {
-          'blockType': header1Attribution,
-        },
-      ),
-      HorizontalRuleNode(id: DocumentEditor.createNodeId()),
       ParagraphNode(
         id: DocumentEditor.createNodeId(),
         text: AttributedText(

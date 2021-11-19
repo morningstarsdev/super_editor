@@ -7,6 +7,12 @@ Document createInitialDocument() {
         id: DocumentEditor.createNodeId(),
         imageUrl: 'https://i.imgur.com/fSZwM7G.jpg',
       ),
+      EmbeddedImageNode(
+        id: DocumentEditor.createNodeId(),
+        title: 'Memory link',
+        counter: 5,
+        imageUrl: 'https://i.imgur.com/fSZwM7G.jpg',
+      ),
       ParagraphNode(
         id: DocumentEditor.createNodeId(),
         text: AttributedText(
