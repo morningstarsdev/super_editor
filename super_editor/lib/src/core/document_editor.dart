@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:super_editor/src/serialization/document_node_from_json.dart';
 import 'package:uuid/uuid.dart';
 
 import 'document.dart';
@@ -301,4 +302,21 @@ class MutableDocument with ChangeNotifier implements Document {
 
   @override
   int get hashCode => _nodes.hashCode;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'nodes': nodes.map((e) => e.toJson()).toList(),
+    };
+  }
+
+  factory MutableDocument.fromJson(Map<String, dynamic> json) => MutableDocument(
+        nodes: json['nodes'] != null
+            ? List<DocumentNode>.from(
+                (json['nodes'] as List).map(
+                  (e) => documentNodeFromJson(e),
+                ),
+              )
+            : null,
+      );
 }

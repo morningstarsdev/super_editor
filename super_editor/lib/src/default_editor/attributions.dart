@@ -73,4 +73,13 @@ class LinkAttribution implements Attribution {
   String toString() {
     return '[LinkAttribution]: $url';
   }
+
+  factory LinkAttribution.fromJson(Map<String, dynamic> json) => LinkAttribution(
+        url: Uri.parse(json['url'] as String),
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'url': url.toString(),
+      };
 }

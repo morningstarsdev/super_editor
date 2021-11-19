@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:super_editor/src/serialization/node_type.dart';
 import 'package:super_editor/super_editor.dart';
 
 import '../core/document.dart';
@@ -72,6 +73,14 @@ class HorizontalRuleNode with ChangeNotifier implements DocumentNode {
   bool hasEquivalentContent(DocumentNode other) {
     return other is HorizontalRuleNode;
   }
+
+  factory HorizontalRuleNode.fromJson(Map<String, dynamic> json) => HorizontalRuleNode(id: json['id'] as String);
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'nodeType': NodeType.horizontalRule.toString(),
+        'id': id,
+      };
 }
 
 /// Displays a horizontal rule in a document.

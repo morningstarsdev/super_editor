@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:super_editor/src/default_editor/attributions.dart';
 import 'package:super_editor/src/infrastructure/_logging.dart';
+import 'package:super_editor/src/serialization/json_serializable.dart';
 
 final _log = attributionsLog;
 
@@ -38,7 +40,7 @@ final _log = attributionsLog;
 /// eventually want a single collapsed list of spans. Use [collapseSpans()]
 /// to collapse the different attribution spans into a single
 /// series of multi-attribution spans.
-class AttributedSpans {
+class AttributedSpans implements JsonSerializable {
   /// Constructs an [AttributedSpans] with the given [attributions].
   ///
   /// [attributions] may be omitted to create an [AttributedSpans]
@@ -925,13 +927,28 @@ class AttributedSpans {
     }
     return buffer.toString();
   }
+
+  factory AttributedSpans.fromJson(Map<String, dynamic> json) => AttributedSpans(
+        attributions: json['attributions'] != null
+            ? List<SpanMarker>.from(json['attributions'].map((spanMarker) => SpanMarker.fromJson(spanMarker)))
+            : null,
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'attributions': _attributions
+            .map(
+              (SpanMarker spanMarker) => spanMarker.toJson(),
+            )
+            .toList(),
+      };
 }
 
 /// Marks the start or end of an attribution span.
 ///
 /// The given [AttributionType] must implement equality for
 /// span management to work correctly.
-class SpanMarker implements Comparable<SpanMarker> {
+class SpanMarker implements Comparable<SpanMarker>, JsonSerializable {
   /// Constructs a [SpanMarker] with the given [attribution], [offset] within
   /// some discrete content, and [markerType] of [start] or [end].
   const SpanMarker({
@@ -987,12 +1004,36 @@ class SpanMarker implements Comparable<SpanMarker> {
 
   @override
   int get hashCode => attribution.hashCode ^ offset.hashCode ^ markerType.hashCode;
+
+  factory SpanMarker.fromJson(Map<String, dynamic> json) => SpanMarker(
+        offset: json['offset'] as int,
+        markerType: _getSpanMarkerTypeFromString(json['markerType'] as String),
+        attribution: json['attribution'] != null && json['attribution']['url'] != null
+            ? LinkAttribution.fromJson(json['attribution'])
+            : NamedAttribution.fromJson(json['attribution']),
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'offset': offset,
+        'markerType': markerType.toString(),
+        'attribution': attribution.toJson(),
+      };
 }
 
 /// The type of a marker within a span, either [start] or [end].
 enum SpanMarkerType {
   start,
   end,
+}
+
+SpanMarkerType _getSpanMarkerTypeFromString(String spanMarkerTypeString) {
+  for (SpanMarkerType type in SpanMarkerType.values) {
+    if (type.toString() == spanMarkerTypeString) {
+      return type;
+    }
+  }
+  return SpanMarkerType.start;
 }
 
 /// An [Attribution] span from [start] to [end], inclusive.
@@ -1070,7 +1111,7 @@ typedef AttributionFilter = bool Function(Attribution candidate);
 ///
 /// To attribute a span with a name, consider using a
 /// [NamedAttribution].
-abstract class Attribution {
+abstract class Attribution implements JsonSerializable {
   /// Attributions with different IDs can overlap each
   /// other, but attributions with the same ID cannot
   /// overlap.
@@ -1118,6 +1159,18 @@ class NamedAttribution implements Attribution {
 
   @override
   int get hashCode => id.hashCode;
+
+  factory NamedAttribution.fromJson(
+    Map<String, dynamic> json,
+  ) =>
+      NamedAttribution(
+        json['id'] as String,
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'id': id,
+      };
 }
 
 class IncompatibleOverlappingAttributionsException implements Exception {

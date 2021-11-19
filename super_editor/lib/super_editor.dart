@@ -38,3 +38,4 @@ export 'src/default_editor/unknown_component.dart';
 
 // TODO: move to separate package
 export 'src/serialization/markdown.dart';
+export 'src/default_editor/embedded_image.dart';

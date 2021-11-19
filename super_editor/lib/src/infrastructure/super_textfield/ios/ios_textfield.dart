@@ -249,14 +249,14 @@ class _SuperIOSTextFieldState extends State<SuperIOSTextField> with SingleTicker
   void _onFocusChange() {
     if (_focusNode.hasFocus) {
       if (!_textEditingController.isAttachedToIme) {
-        _log.info('Attaching TextInputClient to TextInput');
-        setState(() {
-          _textEditingController.attachToIme(
-            textInputAction: widget.textInputAction,
-          );
+        // _log.info('Attaching TextInputClient to TextInput');
+        // setState(() {
+        //   _textEditingController.attachToIme(
+        //     textInputAction: widget.textInputAction,
+        //   );
 
-          _showHandles();
-        });
+        //   _showHandles();
+        // });
       }
     } else {
       _log.info('Lost focus. Detaching TextInputClient from TextInput.');

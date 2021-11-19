@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:super_editor/src/default_editor/text.dart';
+import 'package:super_editor/src/serialization/json_serializable.dart';
 
 /// A read-only document with styled text and multimedia elements.
 ///
@@ -18,7 +19,7 @@ import 'package:super_editor/src/default_editor/text.dart';
 /// content.
 ///
 /// To edit the content of a document, see [DocumentEditor].
-abstract class Document with ChangeNotifier {
+abstract class Document with ChangeNotifier implements JsonSerializable {
   /// Returns all of the content within the document as a list
   /// of [DocumentNode]s.
   List<DocumentNode> get nodes;
@@ -179,7 +180,7 @@ class DocumentPosition {
 }
 
 /// A single content node within a [Document].
-abstract class DocumentNode implements ChangeNotifier {
+abstract class DocumentNode implements ChangeNotifier, JsonSerializable {
   /// ID that is unique within a [Document].
   String get id;
 

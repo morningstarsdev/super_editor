@@ -634,4 +634,10 @@ class _LinkAttribution implements Attribution {
 
   @override
   int get hashCode => url.hashCode;
+
+  @override
+  Map<String, dynamic> toJson() {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
 }

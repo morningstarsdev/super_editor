@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:super_editor/src/core/document_layout.dart';
 import 'package:super_editor/src/core/edit_context.dart';
 import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/attributed_text.dart';
+import 'package:super_editor/src/serialization/list_item_type.dart';
+import 'package:super_editor/src/serialization/node_type.dart';
 
 import '../core/document.dart';
 import '../core/document_editor.dart';
@@ -70,6 +74,22 @@ class ListItemNode extends TextNode {
   bool hasEquivalentContent(DocumentNode other) {
     return other is ListItemNode && type == other.type && indent == other.indent && text == other.text;
   }
+
+  factory ListItemNode.fromJson(Map<String, dynamic> json) => ListItemNode(
+        id: json['id'] as String,
+        itemType: getListItemTypeFromString(json['type'] as String),
+        text: AttributedText.fromJson(json['text']),
+        metadata: json['metadata'] != null ? (jsonDecode(json['metadata']) as Map<String, dynamic>) : null,
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'nodeType': NodeType.listItem.toString(),
+        'id': id,
+        'type': type.toString(),
+        'text': text.toJson(),
+        'metadata': jsonEncode(metadata)
+      };
 }
 
 enum ListItemType {

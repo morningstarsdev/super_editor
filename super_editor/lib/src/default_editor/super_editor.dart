@@ -7,6 +7,7 @@ import 'package:super_editor/src/core/edit_context.dart';
 import 'package:super_editor/src/default_editor/attributions.dart';
 import 'package:super_editor/src/default_editor/blockquote.dart';
 import 'package:super_editor/src/default_editor/common_editor_operations.dart';
+import 'package:super_editor/src/default_editor/embedded_image.dart';
 import 'package:super_editor/src/default_editor/horizontal_rule.dart';
 import 'package:super_editor/src/default_editor/image.dart';
 import 'package:super_editor/src/default_editor/list_items.dart';
@@ -486,6 +487,7 @@ final defaultComponentBuilders = <ComponentBuilder>[
   orderedListItemBuilder,
   blockquoteBuilder,
   imageBuilder,
+  embeddedImageBuilder,
   horizontalRuleBuilder,
   unknownComponentBuilder,
 ];

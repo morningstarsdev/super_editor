@@ -22,7 +22,7 @@ import 'document_input_keyboard.dart';
 
 final _log = Logger(scope: 'text.dart');
 
-class TextNode with ChangeNotifier implements DocumentNode {
+abstract class TextNode with ChangeNotifier implements DocumentNode {
   TextNode({
     required this.id,
     required AttributedText text,
@@ -597,13 +597,33 @@ class _TextComponentState extends State<TextComponent> with DocumentComponent im
     );
   }
 
+  Attribution? _getBlockTypeAttribution(dynamic metadata) {
+    final blockTypeAttribution = metadata['blockType'];
+    if (blockTypeAttribution == null || blockTypeAttribution is NamedAttribution) {
+      return blockTypeAttribution;
+    } else {
+      return NamedAttribution.fromJson(blockTypeAttribution);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     _log.log('build', 'Building a TextComponent with key: ${widget.key}');
 
+    Attribution? blockType = _getBlockTypeAttribution(widget.metadata);
+    // Surround the text with block level attributions.
+    final blockText = widget.text.copyText(0);
+    if (blockType != null) {
+      blockText.addAttribution(
+        blockType,
+        TextRange(start: 0, end: widget.text.text.length - 1),
+      );
+    }
+    final richText = blockText.computeTextSpan(widget.textStyleBuilder);
+
     return SuperSelectableText(
       key: _selectableTextKey,
-      textSpan: widget.text.computeTextSpan(_textStyleWithBlockType),
+      textSpan: richText,
       textAlign: widget.textAlign ?? TextAlign.left,
       textDirection: widget.textDirection ?? TextDirection.ltr,
       textSelection: widget.textSelection ?? const TextSelection.collapsed(offset: -1),

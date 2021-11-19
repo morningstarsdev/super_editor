@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -11,6 +13,7 @@ import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/attributed_text.dart';
 import 'package:super_editor/src/infrastructure/keyboard.dart';
 import 'package:super_editor/src/infrastructure/raw_key_event_extensions.dart';
+import 'package:super_editor/src/serialization/node_type.dart';
 
 import 'document_input_keyboard.dart';
 import 'styles.dart';
@@ -28,6 +31,20 @@ class ParagraphNode extends TextNode {
           text: text,
           metadata: metadata,
         );
+
+  factory ParagraphNode.fromJson(Map<String, dynamic> json) => ParagraphNode(
+        id: json['id'] as String,
+        text: AttributedText.fromJson(json['text']),
+        metadata: json['metadata'] != null ? jsonDecode(json['metadata']) as Map<String, dynamic> : null,
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'nodeType': NodeType.paragraph.toString(),
+        'id': id,
+        'text': text.toJson(),
+        'metadata': jsonEncode(metadata),
+      };
 }
 
 /// Combines two consecutive `ParagraphNode`s, indicated by `firstNodeId`

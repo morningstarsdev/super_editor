@@ -181,11 +181,11 @@ class _SuperAndroidTextfieldState extends State<SuperAndroidTextfield> with Sing
       _focusNode.addListener(_onFocusChange);
     }
 
-    if (widget.textInputAction != oldWidget.textInputAction && _textEditingController.isAttachedToIme) {
-      _textEditingController.updateTextInputConfiguration(
-        textInputAction: widget.textInputAction,
-      );
-    }
+    // if (widget.textInputAction != oldWidget.textInputAction && _textEditingController.isAttachedToIme) {
+    //   _textEditingController.updateTextInputConfiguration(
+    //     textInputAction: widget.textInputAction,
+    //   );
+    // }
 
     if (widget.textController != oldWidget.textController) {
       _textEditingController.removeListener(_onTextOrSelectionChange);
@@ -247,9 +247,9 @@ class _SuperAndroidTextfieldState extends State<SuperAndroidTextfield> with Sing
       if (!_textEditingController.isAttachedToIme) {
         _log.info('Attaching TextInputClient to TextInput');
         setState(() {
-          _textEditingController.attachToIme(
-            textInputAction: widget.textInputAction,
-          );
+          // _textEditingController.attachToIme(
+          //   textInputAction: widget.textInputAction,
+          // );
 
           _showEditingControlsOverlay();
         });

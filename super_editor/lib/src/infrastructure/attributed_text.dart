@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/painting.dart';
+import 'package:super_editor/src/serialization/json_serializable.dart';
 
 import '_logging.dart';
 import 'attributed_spans.dart';
@@ -23,7 +24,7 @@ final _log = attributionsLog;
 /// attributions applied to this [AttributedText].
 // TODO: there is a mixture of mutable and immutable behavior in this class.
 //       Pick one or the other, or offer 2 classes: mutable and immutable (#113)
-class AttributedText with ChangeNotifier {
+class AttributedText with ChangeNotifier implements JsonSerializable {
   AttributedText({
     this.text = '',
     AttributedSpans? spans,
@@ -346,6 +347,17 @@ class AttributedText with ChangeNotifier {
   String toString() {
     return '[AttributedText] - "$text"\n' + spans.toString();
   }
+
+  factory AttributedText.fromJson(Map<String, dynamic> json) => AttributedText(
+        text: json['text'] as String,
+        spans: json['spans'] != null ? AttributedSpans.fromJson(json['spans']) : null,
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        'spans': spans.toJson(),
+      };
 }
 
 /// Visits the [start] and [end] of every span of attributions in

@@ -26,9 +26,7 @@ final _log = imeTextFieldLog;
 /// By default, an [ImeAttributedTextEditingController] is not connected to the platform
 /// IME. To connect to the IME, call `attachToIme`. To detach from the IME, call
 /// `detachFromIme`.
-class ImeAttributedTextEditingController
-    with ChangeNotifier
-    implements AttributedTextEditingController, DeltaTextInputClient {
+class ImeAttributedTextEditingController with ChangeNotifier implements AttributedTextEditingController {
   ImeAttributedTextEditingController({
     final AttributedTextEditingController? controller,
     final void Function(RawFloatingCursorPoint)? onIOSFloatingCursorChange,
@@ -69,56 +67,56 @@ class ImeAttributedTextEditingController
 
   bool get isAttachedToIme => _inputConnection != null && _inputConnection!.attached;
 
-  void attachToIme({
-    bool autocorrect = true,
-    bool enableSuggestions = true,
-    TextInputAction textInputAction = TextInputAction.done,
-  }) {
-    if (isAttachedToIme) {
-      // We're already connected to the IME.
-      return;
-    }
+  // void attachToIme({
+  //   bool autocorrect = true,
+  //   bool enableSuggestions = true,
+  //   TextInputAction textInputAction = TextInputAction.done,
+  // }) {
+  //   if (isAttachedToIme) {
+  //     // We're already connected to the IME.
+  //     return;
+  //   }
 
-    _inputConnection = TextInput.attach(
-        this,
-        TextInputConfiguration(
-          autocorrect: autocorrect,
-          enableDeltaModel: true,
-          enableSuggestions: enableSuggestions,
-          inputAction: textInputAction,
-        ));
-    _inputConnection!
-      ..show()
-      ..setEditingState(currentTextEditingValue!);
-    _log.fine('Is attached to input client? ${_inputConnection!.attached}');
-  }
+  //   _inputConnection = TextInput.attach(
+  //       this,
+  //       TextInputConfiguration(
+  //         autocorrect: autocorrect,
+  //         enableDeltaModel: true,
+  //         enableSuggestions: enableSuggestions,
+  //         inputAction: textInputAction,
+  //       ));
+  //   _inputConnection!
+  //     ..show()
+  //     ..setEditingState(currentTextEditingValue!);
+  //   _log.fine('Is attached to input client? ${_inputConnection!.attached}');
+  // }
 
-  void updateTextInputConfiguration({
-    bool autocorrect = true,
-    bool enableSuggestions = true,
-    TextInputAction textInputAction = TextInputAction.done,
-  }) {
-    if (!isAttachedToIme) {
-      // We're not attached to the IME, so there is nothing to update.
-      return;
-    }
+  // void updateTextInputConfiguration({
+  //   bool autocorrect = true,
+  //   bool enableSuggestions = true,
+  //   TextInputAction textInputAction = TextInputAction.done,
+  // }) {
+  //   if (!isAttachedToIme) {
+  //     // We're not attached to the IME, so there is nothing to update.
+  //     return;
+  //   }
 
-    // Close the current connection.
-    _inputConnection?.close();
+  //   // Close the current connection.
+  //   _inputConnection?.close();
 
-    // Open a new connection with the new configuration.
-    _inputConnection = TextInput.attach(
-        this,
-        TextInputConfiguration(
-          autocorrect: autocorrect,
-          enableDeltaModel: true,
-          enableSuggestions: enableSuggestions,
-          inputAction: textInputAction,
-        ));
-    _inputConnection!
-      ..show()
-      ..setEditingState(currentTextEditingValue!);
-  }
+  //   // Open a new connection with the new configuration.
+  //   _inputConnection = TextInput.attach(
+  //       this,
+  //       TextInputConfiguration(
+  //         autocorrect: autocorrect,
+  //         enableDeltaModel: true,
+  //         enableSuggestions: enableSuggestions,
+  //         inputAction: textInputAction,
+  //       ));
+  //   _inputConnection!
+  //     ..show()
+  //     ..setEditingState(currentTextEditingValue!);
+  // }
 
   void detachFromIme() {
     _log.fine('Closing input connection');
@@ -204,68 +202,68 @@ class ImeAttributedTextEditingController
     }
   }
 
-  @override
-  void updateEditingValueWithDeltas(List<TextEditingDelta> deltas) {
-    _log.fine('Received text editing deltas from platform...');
-    if (deltas.isEmpty) {
-      return;
-    }
+  // @override
+  // void updateEditingValueWithDeltas(List<TextEditingDelta> deltas) {
+  //   _log.fine('Received text editing deltas from platform...');
+  //   if (deltas.isEmpty) {
+  //     return;
+  //   }
 
-    // Prevent us from sending these changes back to the platform as we alter
-    // the _realController. Turn this flag back to `true` after the changes.
-    _sendTextChangesToPlatform = false;
+  //   // Prevent us from sending these changes back to the platform as we alter
+  //   // the _realController. Turn this flag back to `true` after the changes.
+  //   _sendTextChangesToPlatform = false;
 
-    for (final delta in deltas) {
-      if (delta is TextEditingDeltaInsertion) {
-        _log.fine('Processing insertion: $delta');
-        if (selection.isCollapsed && delta.insertionOffset == selection.extentOffset) {
-          // This action appears to be user input at the caret.
-          insertAtCaret(
-            text: delta.textInserted,
-          );
-        } else {
-          // We're not sure what this action represents. Either the current selection
-          // isn't collapsed, or this insertion is taking place at a location other than
-          // where the caret currently sits. Insert the content, applying upstream styles,
-          // and then push/expand the current selection as needed around the new content.
-          insert(
-            newText: AttributedText(
-              text: delta.textInserted,
-            ),
-            insertIndex: delta.insertionOffset,
-          );
-        }
-      } else if (delta is TextEditingDeltaDeletion) {
-        _log.fine('Processing deletion: $delta');
-        delete(
-          from: delta.deletedRange.start,
-          to: delta.deletedRange.end,
-          newSelection: delta.selection,
-          newComposingRegion: delta.composing,
-        );
-      } else if (delta is TextEditingDeltaReplacement) {
-        _log.fine('Processing replacement: $delta');
-        replace(
-          newText: AttributedText(text: delta.replacementText),
-          from: delta.replacedRange.start,
-          to: delta.replacedRange.end,
-          newSelection: delta.selection,
-        );
-      } else if (delta is TextEditingDeltaNonTextUpdate) {
-        _log.fine('Processing selection/composing change: $delta');
-        update(
-          selection: delta.selection,
-          composingRegion: delta.composing,
-        );
-      }
-    }
+  //   for (final delta in deltas) {
+  //     if (delta is TextEditingDeltaInsertion) {
+  //       _log.fine('Processing insertion: $delta');
+  //       if (selection.isCollapsed && delta.insertionOffset == selection.extentOffset) {
+  //         // This action appears to be user input at the caret.
+  //         insertAtCaret(
+  //           text: delta.textInserted,
+  //         );
+  //       } else {
+  //         // We're not sure what this action represents. Either the current selection
+  //         // isn't collapsed, or this insertion is taking place at a location other than
+  //         // where the caret currently sits. Insert the content, applying upstream styles,
+  //         // and then push/expand the current selection as needed around the new content.
+  //         insert(
+  //           newText: AttributedText(
+  //             text: delta.textInserted,
+  //           ),
+  //           insertIndex: delta.insertionOffset,
+  //         );
+  //       }
+  //     } else if (delta is TextEditingDeltaDeletion) {
+  //       _log.fine('Processing deletion: $delta');
+  //       delete(
+  //         from: delta.deletedRange.start,
+  //         to: delta.deletedRange.end,
+  //         newSelection: delta.selection,
+  //         newComposingRegion: delta.composing,
+  //       );
+  //     } else if (delta is TextEditingDeltaReplacement) {
+  //       _log.fine('Processing replacement: $delta');
+  //       replace(
+  //         newText: AttributedText(text: delta.replacementText),
+  //         from: delta.replacedRange.start,
+  //         to: delta.replacedRange.end,
+  //         newSelection: delta.selection,
+  //       );
+  //     } else if (delta is TextEditingDeltaNonTextUpdate) {
+  //       _log.fine('Processing selection/composing change: $delta');
+  //       update(
+  //         selection: delta.selection,
+  //         composingRegion: delta.composing,
+  //       );
+  //     }
+  //   }
 
-    // Now that we're done applying all the deltas, start sending text changes
-    // to the platform again.
-    _sendTextChangesToPlatform = true;
+  //   // Now that we're done applying all the deltas, start sending text changes
+  //   // to the platform again.
+  //   _sendTextChangesToPlatform = true;
 
-    _onReceivedTextEditingValueFromPlatform(currentTextEditingValue!);
-  }
+  //   _onReceivedTextEditingValueFromPlatform(currentTextEditingValue!);
+  // }
 
   @override
   void updateFloatingCursor(RawFloatingCursorPoint point) {

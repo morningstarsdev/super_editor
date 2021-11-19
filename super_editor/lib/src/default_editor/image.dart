@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:super_editor/src/serialization/node_type.dart';
 import 'package:super_editor/super_editor.dart';
 
 import '../core/document.dart';
@@ -92,6 +93,20 @@ class ImageNode with ChangeNotifier implements DocumentNode {
   bool hasEquivalentContent(DocumentNode other) {
     return other is ImageNode && imageUrl == other.imageUrl && altText == other.altText;
   }
+
+  factory ImageNode.fromJson(Map<String, dynamic> json) => ImageNode(
+        id: json['id'] as String,
+        imageUrl: json['imageUrl'] as String,
+        altText: json['altText'] ?? '',
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'nodeType': NodeType.image.toString(),
+        'id': id,
+        'imageUrl': imageUrl,
+        'altText': altText,
+      };
 }
 
 /// Displays an image in a document.
