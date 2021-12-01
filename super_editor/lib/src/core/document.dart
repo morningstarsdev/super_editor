@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:super_editor/src/default_editor/image.dart';
 import 'package:super_editor/src/default_editor/text.dart';
 import 'package:super_editor/src/serialization/json_serializable.dart';
+import 'package:super_editor/src/serialization/node_type.dart';
+import 'package:super_editor/super_editor.dart';
 
 /// A read-only document with styled text and multimedia elements.
 ///
@@ -236,6 +239,24 @@ abstract class DocumentNode implements ChangeNotifier, JsonSerializable {
   ///
   /// Content equivalency ignores the node ID.
   bool hasEquivalentContent(DocumentNode other);
+
+  factory DocumentNode.fromJson(Map<String, dynamic> json) {
+    final nodeType = getNodeTypeFromString(json['nodeType']);
+    switch (nodeType) {
+      case NodeType.image:
+        return ImageNode.fromJson(json);
+      case NodeType.paragraph:
+        return ParagraphNode.fromJson(json);
+      case NodeType.embeddedImage:
+        return EmbeddedImageNode.fromJson(json);
+      case NodeType.horizontalRule:
+        return HorizontalRuleNode.fromJson(json);
+      case NodeType.listItem:
+        return ListItemNode.fromJson(json);
+      default:
+        throw UnimplementedError();
+    }
+  }
 }
 
 /// Marker interface for a selection within a [DocumentNode].
