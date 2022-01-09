@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:super_editor/src/infrastructure/attributed_spans.dart';
 
 /// Header 1 style attribution.
@@ -57,6 +58,12 @@ class LinkAttribution implements Attribution {
 
   final Uri url;
 
+  void onTap({BuildContext? context}) {}
+
+  void onEnter({BuildContext? context}) {}
+
+  void onExit({BuildContext? context}) {}
+
   @override
   bool canMergeWith(Attribution other) {
     return this == other;
@@ -64,7 +71,10 @@ class LinkAttribution implements Attribution {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is LinkAttribution && runtimeType == other.runtimeType && url == other.url;
+      identical(this, other) ||
+      other is LinkAttribution &&
+          runtimeType == other.runtimeType &&
+          url == other.url;
 
   @override
   int get hashCode => url.hashCode;
@@ -74,7 +84,8 @@ class LinkAttribution implements Attribution {
     return '[LinkAttribution]: $url';
   }
 
-  factory LinkAttribution.fromJson(Map<String, dynamic> json) => LinkAttribution(
+  factory LinkAttribution.fromJson(Map<String, dynamic> json) =>
+      LinkAttribution(
         url: Uri.parse(json['url'] as String),
       );
 

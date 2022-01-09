@@ -1,6 +1,9 @@
+import 'package:collection/src/iterable_extensions.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/painting.dart';
 import 'package:super_editor/src/serialization/json_serializable.dart';
+import 'package:super_editor/super_editor.dart';
 
 import '_logging.dart';
 import 'attributed_spans.dart';
@@ -131,14 +134,16 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
   /// Adds the given [attribution] to all characters within the given
   /// [range], inclusive.
   void addAttribution(Attribution attribution, TextRange range) {
-    spans.addAttribution(newAttribution: attribution, start: range.start, end: range.end);
+    spans.addAttribution(
+        newAttribution: attribution, start: range.start, end: range.end);
     notifyListeners();
   }
 
   /// Removes the given [attribution] from all characters within the
   /// given [range], inclusive.
   void removeAttribution(Attribution attribution, TextRange range) {
-    spans.removeAttribution(attributionToRemove: attribution, start: range.start, end: range.end);
+    spans.removeAttribution(
+        attributionToRemove: attribution, start: range.start, end: range.end);
     notifyListeners();
   }
 
@@ -155,7 +160,8 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
       attributions.addAll(spans.getAllAttributionsAt(i));
     }
     for (final attribution in attributions) {
-      spans.removeAttribution(attributionToRemove: attribution, start: range.start, end: range.end);
+      spans.removeAttribution(
+          attributionToRemove: attribution, start: range.start, end: range.end);
     }
   }
 
@@ -163,7 +169,8 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
   /// that [attribution] is removed from the text in [range], inclusive.
   /// Otherwise, all of the text in [range], inclusive, is given the [attribution].
   void toggleAttribution(Attribution attribution, TextRange range) {
-    spans.toggleAttribution(attribution: attribution, start: range.start, end: range.end);
+    spans.toggleAttribution(
+        attribution: attribution, start: range.start, end: range.end);
     notifyListeners();
   }
 
@@ -174,7 +181,8 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
 
     // Note: -1 because copyText() uses an exclusive `start` and `end` but
     // _copyAttributionRegion() uses an inclusive `start` and `end`.
-    final startCopyOffset = startOffset < text.length ? startOffset : text.length - 1;
+    final startCopyOffset =
+        startOffset < text.length ? startOffset : text.length - 1;
     int endCopyOffset;
     if (endOffset == startOffset) {
       endCopyOffset = startCopyOffset;
@@ -204,14 +212,16 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
       );
     }
     if (text.isEmpty) {
-      _log.fine('our `text` is empty. Returning a direct copy of the `other` text.');
+      _log.fine(
+          'our `text` is empty. Returning a direct copy of the `other` text.');
       return AttributedText(
         text: other.text,
         spans: other.spans.copy(),
       );
     }
 
-    final newSpans = spans.copy()..addAt(other: other.spans, index: text.length);
+    final newSpans = spans.copy()
+      ..addAt(other: other.spans, index: text.length);
     return AttributedText(
       text: text + other.text,
       spans: newSpans,
@@ -241,7 +251,8 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
     required int startOffset,
     Set<Attribution> applyAttributions = const {},
   }) {
-    _log.fine('text: "$textToInsert", start: $startOffset, attributions: $applyAttributions');
+    _log.fine(
+        'text: "$textToInsert", start: $startOffset, attributions: $applyAttributions');
 
     _log.fine('copying text to the left');
     final startText = copyText(0, startOffset);
@@ -275,8 +286,9 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
     _log.fine('Removing text region from $startOffset to $endOffset');
     _log.fine('initial attributions:');
     _log.fine(spans.toString());
-    final reducedText = (startOffset > 0 ? text.substring(0, startOffset) : '') +
-        (endOffset < text.length ? text.substring(endOffset) : '');
+    final reducedText =
+        (startOffset > 0 ? text.substring(0, startOffset) : '') +
+            (endOffset < text.length ? text.substring(endOffset) : '');
 
     AttributedSpans contractedAttributions = spans.copy()
       ..contractAttributions(
@@ -307,7 +319,10 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
   /// The given [styleBuilder] interprets the meaning of every
   /// attribution and constructs [TextStyle]s accordingly.
   // TODO: remove this method and use [visitAttributions()] to compute TextSpan
-  TextSpan computeTextSpan(AttributionStyleBuilder styleBuilder) {
+  TextSpan computeTextSpan(
+    AttributionStyleBuilder styleBuilder, {
+    BuildContext? context,
+  }) {
     _log.fine('text length: ${text.length}');
     _log.fine('attributions used to compute spans:');
     _log.fine(spans.toString());
@@ -319,12 +334,23 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
     }
 
     final collapsedSpans = spans.collapseSpans(contentLength: text.length);
-    final textSpans = collapsedSpans
-        .map((attributedSpan) => TextSpan(
-              text: text.substring(attributedSpan.start, attributedSpan.end + 1),
-              style: styleBuilder(attributedSpan.attributions),
-            ))
-        .toList();
+    final textSpans = collapsedSpans.map((attributedSpan) {
+      final LinkAttribution? linkAttribution = attributedSpan.attributions
+              .firstWhereOrNull((attr) => attr is LinkAttribution)
+          as LinkAttribution?;
+
+      return TextSpan(
+        text: text.substring(attributedSpan.start, attributedSpan.end + 1),
+        style: styleBuilder(attributedSpan.attributions),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () => linkAttribution?.onTap(context: context),
+        onEnter: (_) => linkAttribution?.onEnter(context: context),
+        onExit: (_) => linkAttribution?.onExit(context: context),
+        mouseCursor: linkAttribution != null
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.text,
+      );
+    }).toList();
 
     return textSpans.length == 1
         ? textSpans.first
@@ -337,7 +363,10 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        other is AttributedText && runtimeType == other.runtimeType && text == other.text && spans == other.spans;
+        other is AttributedText &&
+            runtimeType == other.runtimeType &&
+            text == other.text &&
+            spans == other.spans;
   }
 
   @override
@@ -350,7 +379,9 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
 
   factory AttributedText.fromJson(Map<String, dynamic> json) => AttributedText(
         text: json['text'] as String,
-        spans: json['spans'] != null ? AttributedSpans.fromJson(json['spans']) : null,
+        spans: json['spans'] != null
+            ? AttributedSpans.fromJson(json['spans'])
+            : null,
       );
 
   @override
@@ -367,8 +398,8 @@ class AttributedText with ChangeNotifier implements JsonSerializable {
 /// either begins or ends. Note: most range-based operations expect the
 /// closing index to be exclusive, but that is not how this callback
 /// works. Both the [start] and [end] [index]es are inclusive.
-typedef AttributionVisitor = void Function(
-    AttributedText fullText, int index, Set<Attribution> attributions, AttributionVisitEvent event);
+typedef AttributionVisitor = void Function(AttributedText fullText, int index,
+    Set<Attribution> attributions, AttributionVisitEvent event);
 
 enum AttributionVisitEvent {
   start,
@@ -379,4 +410,5 @@ enum AttributionVisitEvent {
 /// with a span of text.
 ///
 /// The [attributions] set may be empty.
-typedef AttributionStyleBuilder = TextStyle Function(Set<Attribution> attributions);
+typedef AttributionStyleBuilder = TextStyle Function(
+    Set<Attribution> attributions);
