@@ -11,35 +11,18 @@ import 'styles.dart';
 class EmbeddedImageNode with ChangeNotifier implements DocumentNode {
   EmbeddedImageNode({
     required this.id,
-    required String imageUrl,
-    required String title,
+    required String objectId,
     required int counter,
-  })  : _imageUrl = imageUrl,
-        _title = title,
+  })  : _objectId = objectId,
         _counter = counter;
 
   @override
   final String id;
-  String _title;
+  String _objectId;
   int _counter;
 
-  String _imageUrl;
-  String get imageUrl => _imageUrl;
-  String get title => _title;
+  String get objectId => _objectId;
   int get counter => _counter;
-
-  set title(String title) {
-    _title = title;
-    notifyListeners();
-  }
-
-  set imageUrl(String newImageUrl) {
-    if (newImageUrl != _imageUrl) {
-      print('Paragraph changed. Notifying listeners.');
-      _imageUrl = newImageUrl;
-      notifyListeners();
-    }
-  }
 
   @override
   BinaryNodePosition get beginningPosition => const BinaryNodePosition.included();
@@ -59,12 +42,12 @@ class EmbeddedImageNode with ChangeNotifier implements DocumentNode {
   String? copyContent(dynamic selection) {
     assert(selection is BinarySelection);
 
-    return (selection as BinarySelection).position == BinaryNodePosition.included() ? _imageUrl : null;
+    return null;
   }
 
   @override
   bool hasEquivalentContent(DocumentNode other) {
-    return other is EmbeddedImageNode && imageUrl == other.imageUrl && title == other.title && counter == other.counter;
+    return other is EmbeddedImageNode && id == other.id && objectId == other.objectId && counter == other.counter;
   }
 
   @override
@@ -91,16 +74,14 @@ class EmbeddedImageNode with ChangeNotifier implements DocumentNode {
 
   factory EmbeddedImageNode.fromJson(Map<String, dynamic> json) => EmbeddedImageNode(
       id: json['id'] as String,
-      imageUrl: json['imageUrl'] as String,
-      title: json['title'] as String,
+      objectId: json['objectId'] as String,
       counter: json['counter'] as int);
 
   @override
   Map<String, dynamic> toJson() => {
         'nodeType': NodeType.embeddedImage.toString(),
         'id': id,
-        'imageUrl': imageUrl,
-        'title': title,
+        'objectId': objectId,
         'counter': counter,
       };
 }
@@ -116,8 +97,7 @@ Widget? embeddedImageBuilder(ComponentContext componentContext) {
 
   return EmbeddedImageComponent(
     componentKey: componentContext.componentKey,
-    imageUrl: (componentContext.documentNode as EmbeddedImageNode).imageUrl,
-    title: (componentContext.documentNode as EmbeddedImageNode).title,
+    objectId: (componentContext.documentNode as EmbeddedImageNode).objectId,
     counter: (componentContext.documentNode as EmbeddedImageNode).counter,
     isSelected: isSelected,
     selectionColor: (componentContext.extensions[selectionStylesExtensionKey] as SelectionStyle).selectionColor,
@@ -129,16 +109,14 @@ class EmbeddedImageComponent extends StatefulWidget {
   const EmbeddedImageComponent({
     Key? key,
     required this.componentKey,
-    required this.title,
+    required this.objectId,
     required this.counter,
-    required this.imageUrl,
     this.selectionColor = Colors.blue,
     this.isSelected = false,
   }) : super(key: key);
 
   final GlobalKey componentKey;
-  final String imageUrl;
-  final String title;
+  final String objectId;
   final int counter;
   final Color selectionColor;
   final bool isSelected;
@@ -183,7 +161,7 @@ class _EmbeddedImageComponentState extends State<EmbeddedImageComponent> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          widget.title,
+                          'Embedded object',
                           style: const TextStyle(decoration: TextDecoration.underline, fontWeight: FontWeight.bold),
                         ),
                         IconButton(
@@ -194,10 +172,7 @@ class _EmbeddedImageComponentState extends State<EmbeddedImageComponent> {
                             )),
                       ])
                     : const SizedBox.shrink(),
-                body: Image.network(
-                  widget.imageUrl,
-                  fit: BoxFit.contain,
-                ),
+                body: Text('Override embeddedImageBuilder to show object preview'),
               ),
             ],
           ),
