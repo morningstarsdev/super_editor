@@ -6,6 +6,7 @@ enum NodeType {
   paragraph,
   text,
   listItem,
+  code,
   unknown,
 }
 
