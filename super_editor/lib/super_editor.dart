@@ -35,6 +35,7 @@ export 'src/default_editor/styles.dart';
 export 'src/default_editor/text.dart';
 export 'src/default_editor/text_tools.dart';
 export 'src/default_editor/unknown_component.dart';
+export 'src/default_editor/code.dart;
 
 // TODO: move to separate package
 export 'src/serialization/markdown.dart';
