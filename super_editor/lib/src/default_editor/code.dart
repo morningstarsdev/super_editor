@@ -28,9 +28,9 @@ class CodeNode extends TextNode {
   CodeNode({
     required String id,
     required AttributedText text,
-    required this.language,
+    required String language,
     Map<String, dynamic>? metadata,
-  }) : super(
+  }) : _language = language, super(
           id: id,
           text: text,
           metadata: metadata,
@@ -38,7 +38,17 @@ class CodeNode extends TextNode {
 
   final nodeType = NodeType.code;
 
-  final String language;
+  String _language;
+  String get language => _language;
+  set language(String newLanguage) {
+    if (newLanguage != _language) {
+      _log.log('set language', 'Language changed. Notifying listeners.');
+
+      _language = language;
+
+      notifyListeners();
+    }
+  }
 
   factory CodeNode.fromJson(Map<String, dynamic> json) => CodeNode(
         id: json['id'] as String,
