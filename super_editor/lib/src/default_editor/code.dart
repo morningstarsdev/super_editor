@@ -44,7 +44,7 @@ class CodeNode extends TextNode {
     if (newLanguage != _language) {
       _log.log('set language', 'Language changed. Notifying listeners.');
 
-      _language = language;
+      _language = newLanguage;
 
       notifyListeners();
     }
