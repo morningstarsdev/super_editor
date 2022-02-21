@@ -12,17 +12,13 @@ class EmbeddedImageNode with ChangeNotifier implements DocumentNode {
   EmbeddedImageNode({
     required this.id,
     required String objectId,
-    required int counter,
-  })  : _objectId = objectId,
-        _counter = counter;
+  })  : _objectId = objectId;
 
   @override
   final String id;
   String _objectId;
-  int _counter;
 
   String get objectId => _objectId;
-  int get counter => _counter;
 
   @override
   BinaryNodePosition get beginningPosition => const BinaryNodePosition.included();
@@ -47,7 +43,7 @@ class EmbeddedImageNode with ChangeNotifier implements DocumentNode {
 
   @override
   bool hasEquivalentContent(DocumentNode other) {
-    return other is EmbeddedImageNode && id == other.id && objectId == other.objectId && counter == other.counter;
+    return other is EmbeddedImageNode && id == other.id && objectId == other.objectId;
   }
 
   @override
@@ -74,15 +70,13 @@ class EmbeddedImageNode with ChangeNotifier implements DocumentNode {
 
   factory EmbeddedImageNode.fromJson(Map<String, dynamic> json) => EmbeddedImageNode(
       id: json['id'] as String,
-      objectId: json['objectId'] as String,
-      counter: json['counter'] as int);
+      objectId: json['objectId'] as String,);
 
   @override
   Map<String, dynamic> toJson() => {
         'nodeType': NodeType.embeddedImage.toString(),
         'id': id,
         'objectId': objectId,
-        'counter': counter,
       };
 }
 
@@ -98,7 +92,6 @@ Widget? embeddedImageBuilder(ComponentContext componentContext) {
   return EmbeddedImageComponent(
     componentKey: componentContext.componentKey,
     objectId: (componentContext.documentNode as EmbeddedImageNode).objectId,
-    counter: (componentContext.documentNode as EmbeddedImageNode).counter,
     isSelected: isSelected,
     selectionColor: (componentContext.extensions[selectionStylesExtensionKey] as SelectionStyle).selectionColor,
   );
@@ -110,14 +103,12 @@ class EmbeddedImageComponent extends StatefulWidget {
     Key? key,
     required this.componentKey,
     required this.objectId,
-    required this.counter,
     this.selectionColor = Colors.blue,
     this.isSelected = false,
   }) : super(key: key);
 
   final GlobalKey componentKey;
   final String objectId;
-  final int counter;
   final Color selectionColor;
   final bool isSelected;
 
@@ -153,12 +144,6 @@ class _EmbeddedImageComponentState extends State<EmbeddedImageComponent> {
                     ? Row(children: [
                         const Icon(Icons.coronavirus),
                         const SizedBox(width: 2),
-                        Text(
-                          widget.counter.toString(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                         const SizedBox(width: 5),
                         Text(
                           'Embedded object',
